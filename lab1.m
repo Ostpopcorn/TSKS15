@@ -29,20 +29,18 @@ figure(1)
 plot (T_range,s1,'r')
 hold on
 plot (T_range,s2,'b')
-hold off
 legend("S1","S2")
 
-%% b)
-
-
-%% Lägger till brus
+% Lägger till brus
 x1 = exp(-0.1*(T_range-T).^2) + sqrt(sigma2)*randn(1,length(T_range));
 x2 = exp(-0.1*(T_range-T).^2).*cos(T_range-T) + sqrt(sigma2)*randn(1,length(T_range));
-figure(2)
-plot(T_range,x1,'m')
-hold on
-plot(T_range,x2,'c')
 
+x1 = x1/sqrt(E1);
+x2 = x2/sqrt(E2);
+figure(1)
+plot(T_range,x1,'m')
+plot(T_range,x2,'c')
+hold off
 %%
 
 T_search = -5:T_s:5;
