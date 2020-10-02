@@ -12,7 +12,7 @@ function hat = genarate_T_hat_from_two_funcs(s,x)
     start_index = 251;
     end_index = 351;
     T_hat_metric = T_hat_metric(start_index:end_index);
-    [max_value, max_t_index] = max(T_hat_metric);
+    [ ~, max_t_index] = max(T_hat_metric);
     
     hat = -5+ 0.1*(max_t_index-1);
 end

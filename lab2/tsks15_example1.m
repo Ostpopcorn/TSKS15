@@ -1,11 +1,17 @@
-% Note: When using Octave/Matlab, it may be beneficial for you to generate several melodies with each call to SignalGenerator. This is because the call invokes the 'system', so the overhead is a bit longer than when using Python.
+% Note: When using Octave/Matlab, it may be beneficial for you to generate
+% several melodies with each call to SignalGenerator. This is because the
+% call invokes the 'system', so the overhead is a bit longer than when
+% using Python.
 
 %% Example: Spectrum of the first note
-%Generate 2 melodies, with SNR 100 dB, and 3 tones.
+% Generate 2 melodies, 
+% with SNR 100 dB, 
+% and 3 tones.
 [melodies, ids, mismatches] = SignalGenerator(2, 100, 3);
-% melodies: a matrix containing the received (sampled) signal. Each column is one melody
-% ids: a vector with the intended(true) melody ids (from 1 to 10)
-% mismatches: a vector with the pitch mismatches of the generator. (for example [1.025, 0.975])
+% melodies: a matrix containing the received (sampled) signal. 
+% Each column is one melody ids: a vector with the intended(true) 
+% melody ids (from 1 to 10) mismatches: a vector with the pitch
+% mismatches of the generator. (for example [1.025, 0.975])
 melody = melodies(:,1);
 nr_samples = length(melody);
 nr_tones = 12;
