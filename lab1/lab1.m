@@ -57,8 +57,8 @@ for i = 1:1:length(T_search)
 end
 
 [max, max_t_index] = max(T_hat_metric);
-genarate_T_hat_from_two_funcs(s1,x1);
-T_search(max_t_index)
+conv_val = genarate_T_hat_from_two_funcs(s1,x1)
+search_val = T_search(max_t_index)
 figure(3)
 plot(T_search,T_hat_metric,'r')
 %% Monte Carlo
@@ -76,9 +76,9 @@ for M=M0
     T_hat_s2 = zeros(1,M );
     for m=1:M
         % s1 and s2 contains the signal without noise.
-        x1 =  sqrt(sigma2)*rand(1,N);
-        T_hat_s1(m) = genarate_T_hat_from_two_funcs(s1,x1+s1_time_diffed);
-        T_hat_s2(m) = genarate_T_hat_from_two_funcs(s2,x1+s2_time_diffed);
+        w1 =  sqrt(sigma2)*rand(1,N);
+        T_hat_s1(m) = genarate_T_hat_from_two_funcs(s1,w1+s1_time_diffed);
+        T_hat_s2(m) = genarate_T_hat_from_two_funcs(s2,w1+s2_time_diffed);
     end
     T_hat_mean(1,M) = mean(T_hat_s1);
     T_hat_std(1,M) = std(T_hat_s1);
@@ -102,15 +102,21 @@ plot(M0,std_plot_1(M0),M0,std_plot_2(M0))
 legend("s1","s2")
 title("std")
 
-%% sqrt(CRB) to SNR
+%% CRB
 
 %Plot CRB theoretical value
 
-
 SNR_range = 1:1:40;
-
 sigma2_range = 10.^(-SNR_range./10);
 
+d_s1_energy = sum(diff(s1).^2);
+semilogy(SNR_range, sigma2_range/d_s1_energy)
+figure(30)
+d_s1_energy = sum(diff(s1).^2);
+semilogy(SNR_range, sigma2_range/d_s1_energy)
 % semilogy(SNR_range,sigma2_range(SNR_range),'b-')
 
+figure(31)
+d_s2_energy = sum(diff(s2).^2);
+semilogy(SNR_range, sigma2_range/d_s2_energy)
 
