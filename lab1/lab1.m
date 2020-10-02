@@ -103,3 +103,21 @@ legend("s1","s2")
 title("std")
 
 
+%% CRB
+
+%Plot CRB theoretical value
+
+SNR_range = 1:1:40;
+sigma2_range = 10.^(-SNR_range./10);
+
+d_s1_energy = sum(diff(s1).^2);
+semilogy(SNR_range, sigma2_range/d_s1_energy)
+figure(30)
+d_s1_energy = sum(diff(s1).^2);
+semilogy(SNR_range, sigma2_range/d_s1_energy)
+% semilogy(SNR_range,sigma2_range(SNR_range),'b-')
+
+figure(31)
+d_s2_energy = sum(diff(s2).^2);
+semilogy(SNR_range, sigma2_range/d_s2_energy)
+
