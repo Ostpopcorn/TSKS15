@@ -21,7 +21,8 @@ SNR = 5;
 sigma2 = 10^(-SNR/10);
 
 % Random time diff calc
-T = 2% -5 + 10*rand(1);
+T =-5 + 10*rand(1);
+% T =2;
 
 s1_time_diffed = exp(-0.1*(T_range-T).^2);
 s2_time_diffed = exp(-0.1*(T_range-T).^2).*cos((T_range-T));
@@ -56,8 +57,8 @@ for i = 1:1:length(T_search)
     T_hat_metric(i) = sum(w.*intermidiate);
 end
 
-[max, max_t_index] = max(T_hat_metric);
 genarate_T_hat_from_two_funcs(s1,w);
+[max_value, max_t_index] = max(T_hat_metric);
 T_search(max_t_index)
 figure(3)
 plot(T_search,T_hat_metric,'r')
@@ -65,7 +66,7 @@ plot(T_search,T_hat_metric,'r')
 % testa antalat körningar
 rng('shuffle')
 
-M0 = 1:100:5001; % All the different number of monte-carlo runs we will try
+M0 = [1:10:1000 1001:50:2000 2001:100:5001]; % All the different number of monte-carlo runs we will try
 N = length(T_range);
 T_hat_mean = zeros(2,M0(end));
 T_hat_std = zeros(2,M0(end));
@@ -76,7 +77,7 @@ for M=M0
     T_hat_s2 = zeros(1,M );
     for m=1:M
         % s1 and s2 contains the signal without noise.
-        w =  sqrt(sigma2)*rand(1,N);
+        w =  sqrt(sigma2)*randn(1,N);
         T_hat_s1(m) = genarate_T_hat_from_two_funcs(s1,w+s1_time_diffed);
         T_hat_s2(m) = genarate_T_hat_from_two_funcs(s2,w+s2_time_diffed);
     end
@@ -106,26 +107,26 @@ title("std")
 %% CRB
 %Plot CRB theoretical value
 
-SNR_range = 1:1:60;
+SNR_range = 1:1:25;
 sigma2_range = 10.^(-SNR_range./10);
 
-T_hat_std = zeros(2,SNR_range(end));
+T_hat_std = zeros(2,length(SNR_range));
 monte_carlo_runs = 3000;
 
-for SNR=SNR_range
-    
-    sigma2 = 10^(-SNR/10);
+for SNR_i=1:1:length(SNR_range)
+    SNR_c = SNR_range(SNR_i);
+    sigma2 = 10^(-SNR_c/10);
 
-    T_hat_s1 = zeros(1,SNR );
-    T_hat_s2 = zeros(1,SNR );
+    T_hat_s1 = zeros(1,monte_carlo_runs );
+    T_hat_s2 = zeros(1,monte_carlo_runs );
     for m=1:monte_carlo_runs
         % s1 and s2 contains the signal without noise.
-        w =  sqrt(sigma2)*rand(1,N);
+        w =  sqrt(sigma2)*randn(1,N);
         T_hat_s1(m) = genarate_T_hat_from_two_funcs(s1,w+s1_time_diffed);
         T_hat_s2(m) = genarate_T_hat_from_two_funcs(s2,w+s2_time_diffed);
     end
-    T_hat_std(1,SNR) = std(T_hat_s1);
-    T_hat_std(2,SNR) = std(T_hat_s2);
+    T_hat_std(1,SNR_i) = std(T_hat_s1);
+    T_hat_std(2,SNR_i) = std(T_hat_s2);
     
 end
 std_plot_1 = T_hat_std(1,:);
@@ -133,13 +134,14 @@ std_plot_2 = T_hat_std(2,:);
 
 figure(30)
 d_s1_energy = sum(diff(s1).^2);
-semilogy(SNR_range, sigma2_range./d_s1_energy)
+semilogy(SNR_range, sqrt(sigma2_range)./d_s1_energy)
 hold on 
-semilogy(SNR_range, std_plot_1./d_s1_energy);
+semilogy(SNR_range, std_plot_1);
+hold off
 
 figure(31)
 d_s2_energy = sum(diff(s2).^2);
-semilogy(SNR_range, sigma2_range./d_s2_energy)
+semilogy(SNR_range, sqrt(sigma2_range)./d_s2_energy)
 hold on 
-semilogy(SNR_range, std_plot_2./d_s2_energy);
-
+semilogy(SNR_range, std_plot_2);
+hold off
