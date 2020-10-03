@@ -2,7 +2,8 @@ clear all
 close all
 
 T_s = 0.1;
-T_range = [-15:T_s:15];
+T_range = -15:T_s:15;
+N = length(T_range);
 s1 = exp(-0.1*T_range.^2);
 s2 = exp(-0.1*T_range.^2).*cos(T_range);
 
@@ -57,7 +58,7 @@ for i = 1:1:length(T_search)
     T_hat_metric(i) = sum(w.*intermidiate);
 end
 
-genarate_T_hat_from_two_funcs(s1,w);
+genarate_T_hat_from_two_funcs(s1,w)
 [max_value, max_t_index] = max(T_hat_metric);
 T_search(max_t_index)
 figure(3)
@@ -66,8 +67,8 @@ plot(T_search,T_hat_metric,'r')
 % testa antalat körningar
 rng('shuffle')
 
-M0 = [1:10:1000 1001:50:2000 2001:100:5001]; % All the different number of monte-carlo runs we will try
-N = length(T_range);
+M0 = [1:50:1000 1001:100:2000 2001:200:5001]; % All the different number of monte-carlo runs we will try
+
 T_hat_mean = zeros(2,M0(end));
 T_hat_std = zeros(2,M0(end));
 
@@ -107,11 +108,11 @@ title("std")
 %% CRB
 %Plot CRB theoretical value
 
-SNR_range = 1:1:25;
+SNR_range = 1:4:20;
 sigma2_range = 10.^(-SNR_range./10);
 
 T_hat_std = zeros(2,length(SNR_range));
-monte_carlo_runs = 3000;
+monte_carlo_runs = 2000;
 
 for SNR_i=1:1:length(SNR_range)
     SNR_c = SNR_range(SNR_i);
@@ -133,7 +134,7 @@ std_plot_1 = T_hat_std(1,:);
 std_plot_2 = T_hat_std(2,:);
 
 figure(30)
-d_s1_energy = sum(diff(s1).^2);
+d_s1_energy = sum(diff(s1).^2);     
 semilogy(SNR_range, sqrt(sigma2_range)./d_s1_energy)
 hold on 
 semilogy(SNR_range, std_plot_1);

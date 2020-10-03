@@ -9,10 +9,10 @@ function hat = genarate_T_hat_from_two_funcs(s,x)
     % 25 sekunder in är index 250 (men på matlabianska är det "index" 251)
     % och sen 101 index från det blir 351. på
     % andra sidan är det då 250 index kvar, ok.
-    start_index = 251;
-    end_index = 351;
+    start_index = 250 +1;
+    end_index = 350+1;
     T_hat_metric = T_hat_metric(start_index:end_index);
     [max_value, max_t_index] = max(T_hat_metric);
     
-    hat = -5+ 0.1*(max_t_index-1);
+    hat = -5+ 0.01*(max_t_index-1);
 end
