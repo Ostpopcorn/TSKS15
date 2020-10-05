@@ -22,8 +22,8 @@ SNR = 5;
 sigma2 = 10^(-SNR/10);
 
 % Random time diff calc
-T =-5 + 10*rand(1);
-% T =2;
+% T =-5 + 10*rand(1);
+T =2;
 
 s1_time_diffed = exp(-0.1*(T_range-T).^2);
 s2_time_diffed = exp(-0.1*(T_range-T).^2).*cos((T_range-T));
@@ -70,7 +70,7 @@ rng('shuffle')
 M0 = [1:50:1000 1001:100:2000 2001:200:5001]; % All the different number of monte-carlo runs we will try
 
 T_hat_mean = zeros(2,M0(end));
-T_hat_std = zeros(2,M0(end));
+T_hat_error = zeros(2,M0(end));
 
 for M=M0
     
@@ -78,21 +78,24 @@ for M=M0
     T_hat_s2 = zeros(1,M );
     for m=1:M
         % s1 and s2 contains the signal without noise.
+        T =-5 + 10*rand(1);
+        s1_time_diffed = exp(-0.1*(T_range-T).^2);
+        s2_time_diffed = exp(-0.1*(T_range-T).^2).*cos((T_range-T));
         w =  sqrt(sigma2)*randn(1,N);
         T_hat_s1(m) = genarate_T_hat_from_two_funcs(s1,w+s1_time_diffed);
         T_hat_s2(m) = genarate_T_hat_from_two_funcs(s2,w+s2_time_diffed);
     end
     T_hat_mean(1,M) = mean(T_hat_s1);
-    T_hat_std(1,M) = std(T_hat_s1);
+    T_hat_error(1,M) = std(T_hat_s1);
     T_hat_mean(2,M) = mean(T_hat_s2);
-    T_hat_std(2,M) = std(T_hat_s2);
+    T_hat_error(2,M) = std(T_hat_s2);
     
 end
 
 mean_plot_1 = T_hat_mean(1,:);
-std_plot_1 = T_hat_std(1,:);
+std_plot_1 = T_hat_error(1,:);
 mean_plot_2 = T_hat_mean(2,:);
-std_plot_2 = T_hat_std(2,:);
+std_plot_2 = T_hat_error(2,:);
 
 figure(25)
 plot(M0,mean_plot_1(M0),M0,mean_plot_2(M0))
@@ -108,10 +111,10 @@ title("std")
 %% CRB
 %Plot CRB theoretical value
 
-SNR_range = 1:4:20;
+SNR_range = 1:1:20;
 sigma2_range = 10.^(-SNR_range./10);
 
-T_hat_std = zeros(2,length(SNR_range));
+T_hat_error = zeros(2,length(SNR_range));
 monte_carlo_runs = 2000;
 
 for SNR_i=1:1:length(SNR_range)
@@ -122,16 +125,19 @@ for SNR_i=1:1:length(SNR_range)
     T_hat_s2 = zeros(1,monte_carlo_runs );
     for m=1:monte_carlo_runs
         % s1 and s2 contains the signal without noise.
+        T =-5 + 10*rand(1);
+        s1_time_diffed = exp(-0.1*(T_range-T).^2);
+        s2_time_diffed = exp(-0.1*(T_range-T).^2).*cos((T_range-T));
         w =  sqrt(sigma2)*randn(1,N);
-        T_hat_s1(m) = genarate_T_hat_from_two_funcs(s1,w+s1_time_diffed);
-        T_hat_s2(m) = genarate_T_hat_from_two_funcs(s2,w+s2_time_diffed);
+        T_hat_s1(m) = (T-genarate_T_hat_from_two_funcs(s1,w+s1_time_diffed))^2;
+        T_hat_s2(m) = (T-genarate_T_hat_from_two_funcs(s2,w+s2_time_diffed))^2;
     end
-    T_hat_std(1,SNR_i) = std(T_hat_s1);
-    T_hat_std(2,SNR_i) = std(T_hat_s2);
+    T_hat_error(1,SNR_i) = sqrt(mean(T_hat_s1));
+    T_hat_error(2,SNR_i) = sqrt(mean(T_hat_s2));
     
 end
-std_plot_1 = T_hat_std(1,:);
-std_plot_2 = T_hat_std(2,:);
+std_plot_1 = T_hat_error(1,:);
+std_plot_2 = T_hat_error(2,:);
 
 figure(30)
 d_s1_energy = sum(diff(s1).^2);     
