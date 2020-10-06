@@ -1,5 +1,7 @@
-*~
-debug-*
-lab2/*.eps
-lab2/*.png
-lab2/*.wav
+/*~
+/debug-*
+/lab2/*.eps
+/lab2/*.png
+/lab2/*.wav
+/lab2/matlab/test.py
+*__pycache__*
