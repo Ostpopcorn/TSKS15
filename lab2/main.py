@@ -9,9 +9,10 @@ from lab2.SignalGenerator import SignalGenerator
 import numpy as np
 import numpy.random as rnd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 sg = SignalGenerator()
-melody, idx, mismatch = sg.generate_random_melody(100, 3)
+melody, idx, mismatch = sg.generate_random_melody(100, 1)
 """
 Get a random note 
 """
@@ -27,13 +28,12 @@ k = len(tone)  # length of one note
 n = np.arange(k)  # array [0, ... ,k-1]
 pitch_offsets = [0.975, 1.025]
 
-# %%
 """
 Generate H_i for all twelve notes.
 All f_i exists in sg.dict_note2frequency
 """
-# Contains { 0.975 = {"C" = H-matix, ....}
-#            1.025 = {"C" = H-matix, ....} }
+# Contains { 0.975 = {"C" = H-matrix, ....}
+#            1.025 = {"C" = H-matrix, ....} }
 h_matrices_single_note = {}
 h_matrices_triple_note = {}
 
@@ -58,14 +58,16 @@ for pitch_offset in pitch_offsets:
         current_h_matrices_triple_note[note_name][:, 4] = np.cos(2 * np.pi * note_freq * pitch_offset * 5 * n / fs)
         current_h_matrices_triple_note[note_name][:, 5] = np.sin(2 * np.pi * note_freq * pitch_offset * 5 * n / fs)
 
-# %%
-""" 
-Task one, single tone generator
-"""
-print("start part one")
 
-
-def note_detector(note, h_matrices):
+def note_detector(tone, h_matrices):
+    """
+    Function that can classify signal by the given h_matrices
+    :param tone: array containing the note to be classified:
+    :param h_matrices:  a dict for different h_matrices depending on pitch offset.
+    Contains { 0.975 = {"C" = H-matrix, ....}
+               1.025 = {"C" = H-matrix, ....} }:
+    :return note as string, pitch offset, h_values for all pitches:
+    """
     h_values = {}
     max_notes_per_pitch = {}
     for current_pitch_offset in pitch_offsets:
@@ -76,10 +78,44 @@ def note_detector(note, h_matrices):
         current_max_note = max(current_h_values, key=current_h_values.get)
         max_notes_per_pitch[current_pitch_offset] = current_max_note
     pitch = max(max_notes_per_pitch, key=lambda val: h_values[val][max_notes_per_pitch[val]])
-    print("Pitch", pitch, "Note", max_notes_per_pitch[pitch])
+    # print("Pitch", pitch, "Note", max_notes_per_pitch[pitch])
     max_note = max_notes_per_pitch[pitch]
     return max_note, pitch, h_values
 
+
+def song_checker(detector_notes, melody_index, pitch):
+    correct_notes = sg.melodies[int(melody_index)]
+    count = 0
+    for index in range(nr_tones):
+        if correct_notes[index] != detector_notes[index][0] or detector_notes[index][1] != pitch:
+            count += 1
+
+    return count
+
+
+def song_detector(melody, melody_index, pitch, number_of_notes):
+    # Ta fram alla tolv via detektorn
+    tone_len = int(nr_samples / nr_tones)
+    detector_notes = [["", 0] for i in range(12)]
+    for i in range(nr_tones):
+        # tone = melody[:int(nr_samples / nr_tones)]
+        # I really want to make it one index shorter so no index i counted twice
+        current_tone = melody[i * tone_len:(i + 1) * tone_len]
+        if number_of_notes == 1:
+            b = note_detector(current_tone, h_matrices_single_note)
+            detector_notes[i][0] = b[0]
+            detector_notes[i][1] = b[1]
+        elif number_of_notes == 3:
+            detector_notes[i][0], detector_notes[i][1], b = note_detector(current_tone, h_matrices_triple_note)
+        else:
+            print("PANIK")
+    return song_checker(detector_notes, melody_index, pitch)
+
+
+# %%
+""" 
+Task one, single tone generator
+"""
 
 # Contains {"C",||y_n^T*H_j||^2}
 max_note, pitch, returned_h_values = note_detector(tone, h_matrices_single_note)
@@ -90,5 +126,26 @@ plt.xlabel('H')
 plt.ylabel('magnitude')
 plt.savefig('tone_many_j.png')
 print("end task one")
-
 # %%
+
+print(song_detector(melody, idx, mismatch, 1))
+# %%
+"""
+MonteCarlo that shit!
+"""
+number_of_notes = 1
+
+number_of_monte_carlo_runs = 100
+snr_values = np.arange(-50, 30, 5)
+sigma2_value = 10 ** (-snr_values / 10)
+error_counter = np.zeros(len(snr_values))
+for SNR_index in tqdm(range(len(snr_values))):
+    melodies, ids, pitches = sg.generate_random_melodies(number_of_monte_carlo_runs, snr_values[SNR_index], 1)
+    for run_no in range(number_of_monte_carlo_runs):
+        error_counter[SNR_index] += song_detector(melodies[:, run_no], ids[run_no], pitches[run_no], number_of_notes)
+# %%
+plt.figure()
+plt.plot(snr_values, error_counter)
+plt.xlabel('SNR')
+plt.ylabel('Number of errors')
+plt.savefig('error_plot.png')
