@@ -24,8 +24,8 @@ print("Melody id:", idx, ", Pitch:", mismatch)
 a = rnd.standard_exponential(1)
 # phi = rnd.uniform(-np.pi, np.pi, 1) # Is in the randomly generated melody
 SNR = 10
-k = len(tone)  # length of one note
-n = np.arange(k)  # array [0, ... ,k-1]
+tone_length = len(tone)  # length of one note, k in book
+n = np.arange(tone_length)  # array [0, ... ,tone_length-1]
 pitch_offsets = [0.975, 1.025]
 
 """
@@ -42,7 +42,7 @@ for pitch_offset in pitch_offsets:
     current_h_matrices_single_note = h_matrices_single_note[pitch_offset]
 
     for note_name, note_freq in sg.dict_note2frequency.items():
-        current_h_matrices_single_note[note_name] = np.zeros((k, 2))
+        current_h_matrices_single_note[note_name] = np.zeros((tone_length, 2))
         current_h_matrices_single_note[note_name][:, 0] = np.cos(2 * np.pi * note_freq * pitch_offset * n / fs)
         current_h_matrices_single_note[note_name][:, 1] = np.sin(2 * np.pi * note_freq * pitch_offset * n / fs)
 
@@ -50,7 +50,7 @@ for pitch_offset in pitch_offsets:
     current_h_matrices_triple_note = h_matrices_triple_note[pitch_offset]
 
     for note_name, note_freq in sg.dict_note2frequency.items():
-        current_h_matrices_triple_note[note_name] = np.zeros((k, 6))
+        current_h_matrices_triple_note[note_name] = np.zeros((tone_length, 6))
         current_h_matrices_triple_note[note_name][:, 0] = np.cos(2 * np.pi * note_freq * pitch_offset * 1 * n / fs)
         current_h_matrices_triple_note[note_name][:, 1] = np.sin(2 * np.pi * note_freq * pitch_offset * 1 * n / fs)
         current_h_matrices_triple_note[note_name][:, 2] = np.cos(2 * np.pi * note_freq * pitch_offset * 3 * n / fs)
@@ -127,25 +127,36 @@ plt.ylabel('magnitude')
 plt.savefig('tone_many_j.png')
 print("end task one")
 # %%
-
-print(song_detector(melody, idx, mismatch, 1))
-# %%
 """
 MonteCarlo that shit!
 """
-number_of_notes = 1
+number_of_notes_generator = [1, 3, 1, 3]
+number_of_notes_classifier = [1, 1, 3, 3]
 
-number_of_monte_carlo_runs = 100
-snr_values = np.arange(-50, 30, 5)
+number_of_monte_carlo_runs = 20
+snr_values = np.arange(-50, 0, 2)
 sigma2_value = 10 ** (-snr_values / 10)
-error_counter = np.zeros(len(snr_values))
-for SNR_index in tqdm(range(len(snr_values))):
-    melodies, ids, pitches = sg.generate_random_melodies(number_of_monte_carlo_runs, snr_values[SNR_index], 1)
-    for run_no in range(number_of_monte_carlo_runs):
-        error_counter[SNR_index] += song_detector(melodies[:, run_no], ids[run_no], pitches[run_no], number_of_notes)
+error_counter = [np.zeros(len(snr_values)) for i in range(4)]
+# for SNR_index in range(len(snr_values)):
+for i in range(4):
+    print("G", number_of_notes_generator[i], "C", number_of_notes_classifier[i])
+    for SNR_index in tqdm(range(len(snr_values))):
+        melodies, ids, pitches = sg.generate_random_melodies(number_of_monte_carlo_runs, snr_values[SNR_index],
+                                                             number_of_notes_generator[i])
+        for run_no in range(number_of_monte_carlo_runs):
+            error_counter[i][SNR_index] += song_detector(melodies[:, run_no], ids[run_no], pitches[run_no],
+                                                         number_of_notes_classifier[i])
+
 # %%
-plt.figure()
-plt.plot(snr_values, error_counter)
+f4, axs = plt.subplots(1)
+
+# plt.figure(1)
+g1c1_plot,  = axs.plot(snr_values, error_counter[0] / (nr_tones * number_of_monte_carlo_runs))
+g3c1_plot,  = axs.plot(snr_values, error_counter[1] / (nr_tones * number_of_monte_carlo_runs))
+g1c3_plot,  = axs.plot(snr_values, error_counter[2] / (nr_tones * number_of_monte_carlo_runs))
+g3c3_plot,  = axs.plot(snr_values, error_counter[3] / (nr_tones * number_of_monte_carlo_runs))
 plt.xlabel('SNR')
 plt.ylabel('Number of errors')
 plt.savefig('error_plot.png')
+plt.legend((g1c1_plot, g3c1_plot, g1c3_plot, g3c3_plot), ("G1C1", "G3C1", "´G1C3", "G3C3"))
+plt.show()

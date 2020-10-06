@@ -5,7 +5,7 @@ Created on Wed Mar 28 13:01:04 2018
 tested on Python 3.4.3
 @author: marcus
 """
-import sys
+# import sys
 import numpy as np
 
 
@@ -179,7 +179,7 @@ class SignalGenerator:
             mismatches[idx_generate] = mismatch
         return melodies, ids, mismatches
 
-
+"""
 # =============================================================================
 # End Class SignalGenerator
 # =============================================================================
@@ -201,3 +201,4 @@ if __name__ == "__main__":
     melodies, true_ids, true_mismatches = sg.generate_random_melodies(int(sys.argv[1]), float(sys.argv[2]),
                                                                       int(sys.argv[3]))
     print2matlabcell(melodies, true_ids, true_mismatches)
+"""
