@@ -12,6 +12,6 @@ from tsks15audio import play
 from tsks15audio import save_wav
 
 sg = SignalGenerator()
-melody, idx, mismatch = sg.generate_random_melody(100, 3) # SNR 100 dB, and 3 tones
-play(melody, sg.sampling_frequency)
+melody, idx, mismatch = sg.generate_random_melody(100, 1) # SNR 100 dB, and 3 tones
 save_wav('example.wav', melody, sg.sampling_frequency)
+play(melody, sg.sampling_frequency)

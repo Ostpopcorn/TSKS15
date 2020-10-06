@@ -25,7 +25,7 @@ def save_wav(fname, signal, fs):
         
 def test_play():
     fs = 8000 # Hz
-    fc = 2000 # Hz
+    fc = 1000 # Hz
     duration = 2 # seconds
     time = np.arange(duration * fs) / fs
     s = np.sin(2*np.pi*fc*time)
