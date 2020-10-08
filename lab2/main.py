@@ -165,8 +165,8 @@ MonteCarlo that shit!
 number_of_notes_generator = [1, 3, 1, 3]
 number_of_notes_classifier = [1, 1, 3, 3]
 
-number_of_monte_carlo_runs = 200
-snr_values = np.arange(-50, 0, 4)
+number_of_monte_carlo_runs = 300
+snr_values = np.arange(-50, 0, 1)
 sigma2_value = 10 ** (-snr_values / 10)
 error_counter = [np.zeros(len(snr_values)) for i in range(4)]
 # for SNR_index in range(len(snr_values)):
@@ -181,7 +181,7 @@ for i in range(4):
                 error_counter[i][SNR_index] += 1
             if error_counter[i][SNR_index] >= 50:
                 break
-        print(run_no)
+        # print(run_no)
         error_counter[i][SNR_index] /= run_no
 
 # %%
@@ -194,6 +194,7 @@ g1c3_plot, = axs.plot(snr_values, error_counter[2] )
 g3c3_plot, = axs.plot(snr_values, error_counter[3] )
 plt.xlabel('SNR')
 plt.ylabel('P(Error)')
-plt.savefig('error_plot.png')
 plt.legend((g1c1_plot, g3c1_plot, g1c3_plot, g3c3_plot), ("G1C1", "G3C1", "G1C3", "G3C3"))
+plt.savefig('error_plot.png')
+
 # plt.show()
