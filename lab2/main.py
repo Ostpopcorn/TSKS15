@@ -8,6 +8,8 @@
 from lab2.SignalGenerator import SignalGenerator
 import numpy as np
 import numpy.random as rnd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -192,4 +194,4 @@ plt.xlabel('SNR')
 plt.ylabel('P(Error)')
 plt.savefig('error_plot.png')
 plt.legend((g1c1_plot, g3c1_plot, g1c3_plot, g3c3_plot), ("G1C1", "G3C1", "G1C3", "G3C3"))
-plt.show()
+# plt.show()
