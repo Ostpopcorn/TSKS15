@@ -165,7 +165,7 @@ MonteCarlo that shit!
 number_of_notes_generator = [1, 3, 1, 3]
 number_of_notes_classifier = [1, 1, 3, 3]
 
-number_of_monte_carlo_runs = 300
+number_of_monte_carlo_runs = 400
 snr_values = np.arange(-50, 0, 1)
 sigma2_value = 10 ** (-snr_values / 10)
 error_counter = [np.zeros(len(snr_values)) for i in range(4)]
@@ -179,7 +179,7 @@ for i in range(4):
             melody_index, melody_pitch = song_detector(melodies[:, run_no], number_of_notes_classifier[i])
             if melody_index != ids[run_no] or melody_pitch != pitches[run_no]:
                 error_counter[i][SNR_index] += 1
-            if error_counter[i][SNR_index] >= 50:
+            if error_counter[i][SNR_index] >= 200:
                 break
         # print(run_no)
         error_counter[i][SNR_index] /= run_no
