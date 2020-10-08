@@ -31,12 +31,11 @@ s2_time_diffed = exp(-0.1*(T_range-T).^2).*cos((T_range-T));
 %% a)
 % s2 is better because of greater derivate which is looked for in CRB See
 % (3.14) in kay I
-T =-5 + 10*rand(1);
+
 figure(1)
 plot (T_range,s1,'r')
 hold on
 plot (T_range,s2,'b')
-legend("S1","S2")
 
 % Lägger till brus
 w = exp(-0.1*(T_range-T).^2) + sqrt(sigma2)*randn(1,length(T_range));
@@ -47,6 +46,10 @@ x2 = x2/sqrt(E2);
 figure(1)
 plot(T_range,w,'m')
 plot(T_range,x2,'c')
+legend("s_1","s_2","x_1","x_2")
+title("Comparison of original and delayed with white noise")
+xlabel("T")
+ylabel("Amplitude")
 hold off
 
 T_search = -5:T_s:5;
@@ -62,8 +65,12 @@ end
 conv_value = genarate_T_hat_from_two_funcs(s1,w)
 [max_value, max_t_index] = max(T_hat_metric);
 grid_value = T_search(max_t_index)
+
 figure(3)
 plot(T_search,T_hat_metric,'r')
+title("ML estimate evaluation")
+xlabel("\tau")
+ylabel("Amplitude")
 %% Monte Carlo , var och mean
 % testa antalat körningar
 rng('shuffle')
@@ -97,14 +104,15 @@ mean_plot_2 = T_hat_mean(2,:);
 RMSE_plot_2 = T_hat_RMSE(2,:);
 
 figure(25)
-plot(M0,mean_plot_1(M0),M0,mean_plot_2(M0))
-legend("s1","s2")
-title("mean")
+plot(M0,mean_plot_1(M0),'r',M0,mean_plot_2(M0),'b')
+legend("\mu_{s_1}","\mu_{s_2}")
+title("Monte-Carlo siumulation of \mu")
 
 figure(26)
 plot(M0,RMSE_plot_1(M0),M0,RMSE_plot_2(M0))
-legend("s1","s2")
-title("std")
+legend("\sigma^2_{s_1}","\sigma^2_{s_2}")
+xlabel("")
+title("Monte-Carlo siumulation of \sigma^2")
 
 
 %% CRB
@@ -117,7 +125,7 @@ SNR_range = -10*log10(sigma2_range);
 % sigma2_range = 10.^(-SNR_range./10);
 
 T_hat_RMSE = zeros(2,length(SNR_range));
-monte_carlo_runs = 2000;
+monte_carlo_runs = 10000;
 
 for SNR_i=1:1:length(SNR_range)
     SNR_c = SNR_range(SNR_i);
@@ -155,9 +163,11 @@ semilogy(SNR_range, sqrt(sigma2_range./d_s1_energy))
 semilogy(SNR_range, RMSE_plot_2);
 d_s2_energy = sum(s2_diff.^2);
 semilogy(SNR_range, sqrt(sigma2_range./d_s2_energy))
-title("s2")
+title("RSME error and \surd{}CRB for s_1 and s_2")
+ylabel("RMSE")
+xlabel("SNR [dB]")
 hold off
-legend("s1","CRB1","s2","CRB2")
+legend("RMSE(s_1)","\surd{}CRB(s_1)","RMSE(s_2)","\surd{}CRB(s_2)")
 
 
 
