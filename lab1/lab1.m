@@ -18,7 +18,9 @@ s1 = s1*alpha_1;
 s2 = s2*alpha_2;
 
 % SNR
-sigma2 = 
+N0 = 1;
+B = 5- (-5);
+sigma2 = B*N0;
 SNR = -10*log10(sigma2);
 
 % Random time diff calc
@@ -119,10 +121,10 @@ title("Monte-Carlo siumulation of \sigma^2")
 %Plot CRB theoretical value
 rng('shuffle')
 
-sigma2_range = 10^-2:10^-3:10^-1;
-SNR_range = -10*log10(sigma2_range);
-% SNR_range = 1:2:30;
-% sigma2_range = 10.^(-SNR_range./10);
+% sigma2_range = 10^-2:10^-3:10^-1;
+% SNR_range = -10*log10(sigma2_range);
+SNR_range = 10:1:20;
+sigma2_range = 10.^(-SNR_range./10);
 
 T_hat_RMSE = zeros(2,length(SNR_range));
 monte_carlo_runs = 10000;
