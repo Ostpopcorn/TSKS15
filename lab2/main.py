@@ -21,7 +21,7 @@ nr_tones = 12  # all melodies have 12 tones
 fs = sg.sampling_frequency
 tone = melody[:int(nr_samples / nr_tones)]
 print("Melody id:", idx, ", Pitch:", mismatch)
-a = rnd.standard_exponential(1)
+mel = rnd.standard_exponential(1)
 # phi = rnd.uniform(-np.pi, np.pi, 1) # Is in the randomly generated melody
 SNR = 10
 tone_length = len(tone)  # length of one note, k in book
@@ -66,24 +66,54 @@ def note_detector(tone, h_matrices):
     :param h_matrices:  a dict for different h_matrices depending on pitch offset.
     Contains { 0.975 = {"C" = H-matrix, ....}
                1.025 = {"C" = H-matrix, ....} }:
-    :return note as string, pitch offset, h_values for all pitches:
+    :return note as string, pitch offset, h_metric for all pitches:
     """
-    h_values = {}
+    h_metric = {}
     max_notes_per_pitch = {}
     for current_pitch_offset in pitch_offsets:
-        h_values[current_pitch_offset] = {}
-        current_h_values = h_values[current_pitch_offset]
+        h_metric[current_pitch_offset] = {}
+        current_h_matrics = h_metric[current_pitch_offset]
         for current_note_name, h_matrix in h_matrices[current_pitch_offset].items():  # h_matrix) **2
-            current_h_values[current_note_name] = np.linalg.norm(np.matmul(np.transpose(tone), h_matrix)) ** 2
-        current_max_note = max(current_h_values, key=current_h_values.get)
+            current_h_matrics[current_note_name] = np.linalg.norm(np.matmul(np.transpose(tone), h_matrix)) ** 2
+        current_max_note = max(current_h_matrics, key=current_h_matrics.get)
         max_notes_per_pitch[current_pitch_offset] = current_max_note
-    pitch = max(max_notes_per_pitch, key=lambda val: h_values[val][max_notes_per_pitch[val]])
+    pitch = max(max_notes_per_pitch, key=lambda val: h_metric[val][max_notes_per_pitch[val]])
     # print("Pitch", pitch, "Note", max_notes_per_pitch[pitch])
     max_note = max_notes_per_pitch[pitch]
-    return max_note, pitch, h_values
+    return max_note, pitch, h_metric
 
 
-def song_checker(detector_notes, melody_index, pitch):
+def song_detector(melody, number_of_notes):
+    tone_len = int(nr_samples / nr_tones)
+    h_metric = {}
+    max_song_per_pitch = {}
+    for current_pitch_offset in pitch_offsets:
+        h_metric[current_pitch_offset] = {}
+        current_h_values = h_metric[current_pitch_offset]
+        for current_song_index in range(len(sg.melodies)):
+            current_h_values[current_song_index] = 0
+            for i in range(len(sg.melodies)):
+                current_note_name = sg.melodies[current_song_index][i]
+                current_tone = melody[i * tone_len:(i + 1) * tone_len]
+                h_matrix = []
+                if number_of_notes == 1:
+                    h_matrix = h_matrices_single_note[current_pitch_offset][current_note_name]
+                elif number_of_notes == 3:
+                    h_matrix = h_matrices_triple_note[current_pitch_offset][current_note_name]
+                current_h_values[current_song_index] += \
+                    np.linalg.norm(np.matmul(np.transpose(current_tone), h_matrix)) ** 2
+
+        max_song_per_pitch[current_pitch_offset] = max(current_h_values, key=lambda key: current_h_values[key])
+    melody_pitch = max(max_song_per_pitch, key=lambda val: h_metric[val][max_song_per_pitch[val]])
+    melody_index = max_song_per_pitch[melody_pitch]
+    return melody_index, melody_pitch
+
+
+mel = sg.generate_melody(1, 1, 1)
+song_detector(mel, 1)
+
+
+def song_summer_checker(detector_notes, melody_index, pitch):
     correct_notes = sg.melodies[int(melody_index)]
     count = 0
     for index in range(nr_tones):
@@ -93,7 +123,7 @@ def song_checker(detector_notes, melody_index, pitch):
     return count
 
 
-def song_detector(melody, melody_index, pitch, number_of_notes):
+def song_summer_detector(melody, melody_index, pitch, number_of_notes):
     # Ta fram alla tolv via detektorn
     tone_len = int(nr_samples / nr_tones)
     detector_notes = [["", 0] for i in range(12)]
@@ -109,7 +139,7 @@ def song_detector(melody, melody_index, pitch, number_of_notes):
             detector_notes[i][0], detector_notes[i][1], b = note_detector(current_tone, h_matrices_triple_note)
         else:
             print("PANIK")
-    return song_checker(detector_notes, melody_index, pitch)
+    return song_summer_checker(detector_notes, melody_index, pitch)
 
 
 # %%
@@ -133,8 +163,8 @@ MonteCarlo that shit!
 number_of_notes_generator = [1, 3, 1, 3]
 number_of_notes_classifier = [1, 1, 3, 3]
 
-number_of_monte_carlo_runs = 20
-snr_values = np.arange(-50, 0, 2)
+number_of_monte_carlo_runs = 200
+snr_values = np.arange(-50, 0, 4)
 sigma2_value = 10 ** (-snr_values / 10)
 error_counter = [np.zeros(len(snr_values)) for i in range(4)]
 # for SNR_index in range(len(snr_values)):
@@ -144,19 +174,22 @@ for i in range(4):
         melodies, ids, pitches = sg.generate_random_melodies(number_of_monte_carlo_runs, snr_values[SNR_index],
                                                              number_of_notes_generator[i])
         for run_no in range(number_of_monte_carlo_runs):
-            error_counter[i][SNR_index] += song_detector(melodies[:, run_no], ids[run_no], pitches[run_no],
-                                                         number_of_notes_classifier[i])
+            melody_index, melody_pitch = song_detector(melodies[:, run_no], number_of_notes_classifier[i])
+            if melody_index != ids[run_no] or melody_pitch != pitches[run_no]:
+                error_counter[i][SNR_index] += 1
+            if error_counter[i][SNR_index] >= 50:
+                break
 
 # %%
 f4, axs = plt.subplots(1)
 
 # plt.figure(1)
-g1c1_plot,  = axs.plot(snr_values, error_counter[0] / (nr_tones * number_of_monte_carlo_runs))
-g3c1_plot,  = axs.plot(snr_values, error_counter[1] / (nr_tones * number_of_monte_carlo_runs))
-g1c3_plot,  = axs.plot(snr_values, error_counter[2] / (nr_tones * number_of_monte_carlo_runs))
-g3c3_plot,  = axs.plot(snr_values, error_counter[3] / (nr_tones * number_of_monte_carlo_runs))
+g1c1_plot, = axs.plot(snr_values, error_counter[0] / (nr_tones * number_of_monte_carlo_runs))
+g3c1_plot, = axs.plot(snr_values, error_counter[1] / (nr_tones * number_of_monte_carlo_runs))
+g1c3_plot, = axs.plot(snr_values, error_counter[2] / (nr_tones * number_of_monte_carlo_runs))
+g3c3_plot, = axs.plot(snr_values, error_counter[3] / (nr_tones * number_of_monte_carlo_runs))
 plt.xlabel('SNR')
-plt.ylabel('Number of errors')
+plt.ylabel('P(Error)')
 plt.savefig('error_plot.png')
-plt.legend((g1c1_plot, g3c1_plot, g1c3_plot, g3c3_plot), ("G1C1", "G3C1", "´G1C3", "G3C3"))
+plt.legend((g1c1_plot, g3c1_plot, g1c3_plot, g3c3_plot), ("G1C1", "G3C1", "G1C3", "G3C3"))
 plt.show()
