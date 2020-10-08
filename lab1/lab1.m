@@ -18,8 +18,8 @@ s1 = s1*alpha_1;
 s2 = s2*alpha_2;
 
 % SNR
-SNR = 40;
-sigma2 = 10^(-SNR/10);
+sigma2 = 
+SNR = -10*log10(sigma2);
 
 % Random time diff calc
 T =-5 + 10*rand(1);
@@ -75,7 +75,7 @@ ylabel("Amplitude")
 % testa antalat körningar
 rng('shuffle')
 
-M0 = [1:100:1000 1001:200:2000 2001:400:5001]; % All the different number of monte-carlo runs we will try
+M0 = [1:50:1000 1001:100:2000 2001:100:6001]; % All the different number of monte-carlo runs we will try
 
 T_hat_mean = zeros(2,M0(end));
 T_hat_RMSE = zeros(2,M0(end));
