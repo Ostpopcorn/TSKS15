@@ -181,15 +181,17 @@ for i in range(4):
                 error_counter[i][SNR_index] += 1
             if error_counter[i][SNR_index] >= 50:
                 break
+        print(run_no)
+        error_counter[i][SNR_index] /= run_no
 
 # %%
 f4, axs = plt.subplots(1)
 
 # plt.figure(1)
-g1c1_plot, = axs.plot(snr_values, error_counter[0] / (nr_tones * number_of_monte_carlo_runs))
-g3c1_plot, = axs.plot(snr_values, error_counter[1] / (nr_tones * number_of_monte_carlo_runs))
-g1c3_plot, = axs.plot(snr_values, error_counter[2] / (nr_tones * number_of_monte_carlo_runs))
-g3c3_plot, = axs.plot(snr_values, error_counter[3] / (nr_tones * number_of_monte_carlo_runs))
+g1c1_plot, = axs.plot(snr_values, error_counter[0] )
+g3c1_plot, = axs.plot(snr_values, error_counter[1] )
+g1c3_plot, = axs.plot(snr_values, error_counter[2] )
+g3c3_plot, = axs.plot(snr_values, error_counter[3] )
 plt.xlabel('SNR')
 plt.ylabel('P(Error)')
 plt.savefig('error_plot.png')
